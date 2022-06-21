@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.util.List;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -19,7 +20,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private final String TAG = "MainActivityLog";
-    private final String URL = "http://192.168.100.42:5050";
+    private final String URL = "http://210.102.142.30:5050"; //ethernet ipv4 addr
 
     private Retrofit retrofit;
     private ApiService service;
@@ -62,18 +63,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_get:
-                Call<ResponseBody> call_get = service.getFunc("get data");
+                Call<ResponseBody> call_get = service.getFunc("undefined");
                 call_get.enqueue(new Callback<ResponseBody>() {
                     @Override
                     public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                         if (response.isSuccessful()) {
+                            ResponseBody result = response.body();
                             try {
-                                String result = response.body().string();
-                                Log.v(TAG, "result = " + result);
-                                Toast.makeText(getApplicationContext(), result, Toast.LENGTH_SHORT).show();
+                                Log.v(TAG, "result = " + result.string());
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
+                            Toast.makeText(getApplicationContext(), "result = " + result, Toast.LENGTH_SHORT).show();
                         } else {
                             Log.v(TAG, "error = " + String.valueOf(response.code()));
                             Toast.makeText(getApplicationContext(), "error = " + String.valueOf(response.code()), Toast.LENGTH_SHORT).show();
@@ -89,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.btn_post:
-                Call<ResponseBody> call_post = service.postFunc("post data");
+                Call<ResponseBody> call_post = service.postFunc("on", "red", "");
                 call_post.enqueue(new Callback<ResponseBody>() {
                     @Override
                     public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -116,18 +117,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.btn_update:
-                Call<ResponseBody> call_put = service.putFunc("board", "put data");
-                call_put.enqueue(new Callback<ResponseBody>() {
+                int[] tmp = {1, 2};
+                DataControl cmd = new DataControl("sens", "2", "3", tmp);
+                service.setCmd("set", cmd).enqueue(new Callback<DataControl>() {
                     @Override
-                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    public void onResponse(Call<DataControl> call, Response<DataControl> response) {
                         if (response.isSuccessful()) {
-                            try {
-                                String result = response.body().string();
-                                Log.v(TAG, "result = " + result);
-                                Toast.makeText(getApplicationContext(), result, Toast.LENGTH_SHORT).show();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+                            String result = response.body().toString();
+                            Log.v(TAG, "result = " + result);
+                            Toast.makeText(getApplicationContext(), result, Toast.LENGTH_SHORT).show();
                         } else {
                             Log.v(TAG, "error = " + String.valueOf(response.code()));
                             Toast.makeText(getApplicationContext(), "error = " + String.valueOf(response.code()), Toast.LENGTH_SHORT).show();
@@ -135,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
 
                     @Override
-                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    public void onFailure(Call<DataControl> call, Throwable t) {
                         Log.v(TAG, "Fail");
                         Toast.makeText(getApplicationContext(), "Response Fail", Toast.LENGTH_SHORT).show();
                     }
